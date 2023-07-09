@@ -3,7 +3,10 @@ package com.formalizacao.cartao.service;
 import com.formalizacao.cartao.model.Cliente;
 import com.formalizacao.cartao.repository.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,27 +25,50 @@ public class ClienteService {
         return clienteRepository.findAll();
     }
 
-    public Cliente getClienteById(Long id) {
+    public ResponseEntity<Cliente> getClienteById(Long id) {
         Optional<Cliente> clienteOptional = clienteRepository.findById(id);
-        return clienteOptional.orElse(null);
+        if (clienteOptional.isPresent()) {
+            Cliente cliente = clienteOptional.get();
+            return ResponseEntity.ok(cliente);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    public ResponseEntity<Cliente> getClienteByCpf(String cpf) {
+        Optional<Cliente> clienteOptional = Optional.ofNullable(clienteRepository.findByCpf(cpf));
+        if (clienteOptional.isPresent()) {
+            Cliente cliente = clienteOptional.get();
+            return ResponseEntity.ok(cliente);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     public Cliente createCliente(Cliente cliente) {
-        return clienteRepository.save(cliente);
+        Cliente createdCliente = clienteRepository.save(cliente);
+        return createdCliente;
     }
 
-    public Cliente updateCliente(Long id, Cliente cliente) {
+    public ResponseEntity<Cliente> updateCliente(Long id, Cliente cliente) {
         Optional<Cliente> clienteOptional = clienteRepository.findById(id);
         if (clienteOptional.isPresent()) {
             Cliente existingCliente = clienteOptional.get();
             existingCliente.setNome(cliente.getNome());
             existingCliente.setCpf(cliente.getCpf());
-            return clienteRepository.save(existingCliente);
+            Cliente updatedCliente = clienteRepository.save(existingCliente);
+            return ResponseEntity.ok(updatedCliente);
+        } else {
+            return ResponseEntity.notFound().build();
         }
-        return null;
     }
 
-    public void deleteCliente(Long id) {
-        clienteRepository.deleteById(id);
+    public boolean deleteCliente(Long id) {
+        Optional<Cliente> clienteOptional = clienteRepository.findById(id);
+        if (clienteOptional.isPresent()) {
+            clienteRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

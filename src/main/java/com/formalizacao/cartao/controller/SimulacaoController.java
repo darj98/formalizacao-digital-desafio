@@ -1,6 +1,5 @@
 package com.formalizacao.cartao.controller;
 
-import com.formalizacao.cartao.model.SimulacaoResultado;
 import com.formalizacao.cartao.repository.ClienteRepository;
 import com.formalizacao.cartao.service.SimulacaoService;
 import org.springframework.http.ResponseEntity;
@@ -18,16 +17,16 @@ public class SimulacaoController {
         this.clienteRepository = clienteRepository;
     }
 
-    @PostMapping
-    public ResponseEntity<String> realizarSimulacao(@RequestParam("cpf") String cpf) {
+    @PostMapping("/{id}")
+    public ResponseEntity<String> realizarSimulacao(@PathVariable String cpf) {
         boolean cpfExists = clienteRepository.existsByCpf(cpf);
 
-        if (!cpfExists) {
+        if (cpfExists) {
+            String resultado = simulacaoService.realizarSimulacao(cpf);
+            return ResponseEntity.ok(resultado);
+        } else {
             return ResponseEntity.badRequest().body("CPF não cadastrado no banco ou inválido.");
         }
-
-        SimulacaoResultado resultado = simulacaoService.realizarSimulacao(cpf);
-        return ResponseEntity.ok(resultado.toString());
     }
 
     @GetMapping("/calcularPontuacaoRenda/{cpf}")

@@ -2,7 +2,9 @@ package com.formalizacao.cartao.controller;
 
 import com.formalizacao.cartao.model.Cliente;
 import com.formalizacao.cartao.service.ClienteService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.formalizacao.cartao.util.Messages;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,7 +15,6 @@ public class ClienteController {
 
     private final ClienteService clienteService;
 
-    @Autowired
     public ClienteController(ClienteService clienteService) {
         this.clienteService = clienteService;
     }
@@ -24,22 +25,57 @@ public class ClienteController {
     }
 
     @GetMapping("/{id}")
-    public Cliente getClienteById(@PathVariable Long id) {
-        return clienteService.getClienteById(id);
+    public ResponseEntity<Cliente> getClienteById(@PathVariable Long id) {
+        Cliente cliente = clienteService.getClienteById(id).getBody();
+        if (cliente != null) {
+            return ResponseEntity.ok(cliente);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping
-    public Cliente createCliente(@RequestBody Cliente cliente) {
-        return clienteService.createCliente(cliente);
+    public ResponseEntity<?> createCliente(@RequestBody Cliente cliente) {
+        if (StringUtils.isEmpty(cliente.getNome())) {
+            return ResponseEntity.badRequest().body(Messages.obterMensagemNomeCliente());
+        }
+        if (StringUtils.isEmpty(cliente.getCpf())) {
+            return ResponseEntity.badRequest().body(Messages.obterMensagemCpfCliente());
+        }
+
+        Cliente createdCliente = clienteService.createCliente(cliente);
+        return ResponseEntity.ok(createdCliente);
     }
 
     @PutMapping("/{id}")
-    public Cliente updateCliente(@PathVariable Long id, @RequestBody Cliente cliente) {
-        return clienteService.updateCliente(id, cliente);
+    public ResponseEntity<Cliente> updateCliente(@PathVariable Long id, @RequestBody Cliente cliente) {
+        Cliente updatedCliente = clienteService.updateCliente(id, cliente).getBody();
+        if (updatedCliente != null) {
+            return ResponseEntity.ok(updatedCliente);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{id}")
-    public void deleteCliente(@PathVariable Long id) {
-        clienteService.deleteCliente(id);
+    public ResponseEntity<String> deleteCliente(@PathVariable Long id) {
+        boolean clienteDeleted = clienteService.deleteCliente(id);
+        if (clienteDeleted) {
+            return ResponseEntity.ok(Messages.obterMensagemClienteDeletado());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/{cpf}/ultimaSimulacao")
+    public ResponseEntity<String> getUltimaSimulacao(@PathVariable String cpf) {
+        Cliente cliente = clienteService.getClienteByCpf(cpf).getBody();
+        if (cliente != null && cliente.getUltimaSimulacao() != null) {
+            return ResponseEntity.ok(Messages.obterMensagemUltimaSimulacao(cpf,cliente.getUltimaSimulacao()));
+        } else if(cliente != null && cliente.getUltimaSimulacao() == null){
+            return ResponseEntity.ok(Messages.obterMensagemUltimaSimulacaoInexistente());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
