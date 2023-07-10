@@ -30,4 +30,31 @@ public class Messages {
     public static String obterMensagemCpfCliente() {
         return "O cpf do cliente é obrigatório!";
     }
+
+    public static String obterMensagemCpfInválido() {
+        return "CPF não cadastrado no banco ou inválido!";
+    }
+
+    public static String obterMensagemDebitoPendente() {
+        return "Cliente possui débito pendente!";
+    }
+    public static String obterMensagemSucessoContratacao() {
+        return "Parabéns! Você obteve sucesso na contratação do cartão: ";
+    }
+
+    public static String obterMensagemContratacaoNegada() {
+        return "Seu pedido de cartão não é compatível pois o último cartão liberado foi o: ";
+    }
+
+    public static String obterMensagemTipoCartaoInvalido() {
+        return "O Tipo de cartão requisitado é inválido!";
+    }
+
+    public static String obterMensagemCpfInexistenteInvalido() {
+        return "CPF não cadastrado no banco ou inválido.";
+    }
+
+    public static String obterMensagemClienteExistente() {
+        return "CPF informado já existe nos registros!";
+    }
 }

@@ -28,7 +28,7 @@ public class SimulacaoService {
     private static final String ENDPOINT_CALCULAR_PONTUACAO_HISTORICO_FINANCEIRO = "http://localhost:8080/simulacao/calcularPontuacaoHistoricoFinanceiro/";
     private static final String ENDPOINT_CALCULAR_PONTUACAO_PAGAMENTO_CONTAS = "http://localhost:8080/simulacao/calcularPontuacaoPagamentoContas/";
     private static final String ENDPOINT_CALCULAR_PONTUACAO_REQUISICOES_CREDITO = "http://localhost:8080/simulacao/calcularPontuacaoRequisicoesCredito/";
-    private static final String ENDPOINT_TRAZER_ULTIMA_SIMULACAO_COMECO = "http://localhost:8080/simulacao/";
+    private static final String ENDPOINT_TRAZER_ULTIMA_SIMULACAO_COMECO = "http://localhost:8080/clientes/";
     private static final String ENDPOINT_TRAZER_ULTIMA_SIMULACAO_FIM = "/ultimaSimulacao";
 
     public SimulacaoService(RestTemplateBuilder restTemplateBuilder, ClienteRepository clienteRepository) {
@@ -46,7 +46,6 @@ public class SimulacaoService {
             default -> classificacao = ClassificacaoCartao.BRONZE;
         }
 
-        // Atualiza o resultado da última simulação no cliente correspondente
         Cliente cliente = clienteRepository.findByCpf(cpf);
         if (cliente != null) {
             cliente.setUltimaSimulacao(classificacao);
@@ -92,8 +91,19 @@ public class SimulacaoService {
         }
     }
 
-    public int getUltimaSimulacao(String cpf){
-        return chamarEndpoint(ENDPOINT_TRAZER_ULTIMA_SIMULACAO_COMECO + cpf + ENDPOINT_TRAZER_ULTIMA_SIMULACAO_FIM);
+    public ClassificacaoCartao getUltimaSimulacao(String cpf){
+        String url = ENDPOINT_TRAZER_ULTIMA_SIMULACAO_COMECO + cpf + ENDPOINT_TRAZER_ULTIMA_SIMULACAO_FIM;
+        try {
+            ResponseEntity<ClassificacaoCartao> response = restTemplate.exchange(url,
+                    HttpMethod.GET, null, ClassificacaoCartao.class);
+            if (response.getStatusCode() == HttpStatus.OK) {
+                return Objects.requireNonNull(response.getBody());
+            } else {
+                throw new IllegalStateException(Messages.obterMensagemErroEndpoint() + url);
+            }
+        } catch (RestClientException e) {
+            throw new IllegalStateException(Messages.obterMensagemErroEndpoint() + url, e);
+        }
     }
 
     public int gerarValorAleatorio(String cpf) {

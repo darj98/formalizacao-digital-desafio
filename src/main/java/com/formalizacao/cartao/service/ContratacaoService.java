@@ -1,86 +1,90 @@
 package com.formalizacao.cartao.service;
 
 import com.formalizacao.cartao.model.Cliente;
-import com.formalizacao.cartao.model.SimulacaoResultado;
+import com.formalizacao.cartao.model.Contratacao;
 import com.formalizacao.cartao.model.enums.ClassificacaoCartao;
+import com.formalizacao.cartao.repository.ClienteRepository;
 import com.formalizacao.cartao.util.Messages;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Objects;
 
 @Service
 public class ContratacaoService {
     private final RestTemplate restTemplate;
     private final ClienteService clienteService;
     private final SimulacaoService simulacaoService;
-    private static final String ENDPOINT_SIMULACAO = "http://localhost:8080/simulacao";
+    private final ClienteRepository clienteRepository;
+    private static final String ENDPOINT_SIMULACAO = "http://localhost:8080/simulacao/";
+    private static final String OURO = "OURO";
+    private static final String PRATA = "PRATA";
 
     @Autowired
-    public ContratacaoService(RestTemplate restTemplate, ClienteService clienteService, SimulacaoService simulacaoService) {
-        this.restTemplate = restTemplate;
+    public ContratacaoService(RestTemplateBuilder restTemplateBuilder, ClienteService clienteService,
+                              SimulacaoService simulacaoService, ClienteRepository clienteRepository) {
+        this.restTemplate = restTemplateBuilder.build();
         this.clienteService = clienteService;
         this.simulacaoService = simulacaoService;
+        this.clienteRepository = clienteRepository;
     }
 
-    public String realizarContratacao(String cpf, boolean utilizarUltimaSimulacao, String tipoCartao) {
-        Cliente cliente = clienteService.getClienteByCpf(cpf).getBody();
+    public String realizarContratacao(Contratacao contratacao) {
+        Cliente cliente = clienteService.getClienteByCpf(contratacao.getCpf()).getBody();
+
         if (cliente == null) {
-            return "CPF não cadastrado no banco ou inválido.";
+            return Messages.obterMensagemCpfInválido();
+        }else if (!clienteRepository.existsByCpf(contratacao.getCpf())) {
+            return Messages.obterMensagemCpfInexistenteInvalido();
         }
 
         if (clientePossuiDebito(cliente)) {
-            return "Cliente possui débito pendente.";
+            return Messages.obterMensagemDebitoPendente();
         }
 
-        String ultimaSimulacao = null;
-        if (utilizarUltimaSimulacao) {
-            ultimaSimulacao = String.valueOf(simulacaoService.getUltimaSimulacao(cpf));
-            if (ultimaSimulacao == null) {
+        if(!isTipoCartaoEnviadoValido(contratacao.getTipoCartao())){
+            return Messages.obterMensagemTipoCartaoInvalido();
+        }
+
+        ClassificacaoCartao simulacao;
+        if (contratacao.isUtilizarUltimaSimulacao()) {
+            simulacao = cliente.getUltimaSimulacao();
+            if (simulacao == null) {
                 return Messages.obterMensagemUltimaSimulacaoInexistente();
             }
         }else{
-            ultimaSimulacao = chamarEndpoint(ENDPOINT_SIMULACAO + cpf);
+            simulacaoService.realizarSimulacao(contratacao.getCpf());
+            simulacao = cliente.getUltimaSimulacao();
         }
 
-        ClassificacaoCartao classificacaoCartao;
-        if (utilizarUltimaSimulacao) {
-            classificacaoCartao = ultimaSimulacao.getClassificacaoCartao();
-        } else {
-            SimulacaoResultado novaSimulacao = simulacaoService.realizarSimulacao(cpf);
-            classificacaoCartao = novaSimulacao.getClassificacaoCartao();
+        if (!isCartaoCompativel(simulacao, contratacao.getTipoCartao())) {
+            return Messages.obterMensagemContratacaoNegada() + simulacao;
         }
 
-        if (!isCartaoCompativel(classificacaoCartao, tipoCartao)) {
-            return "O último cartão liberado foi " + classificacaoCartao.toString() + ". Seu pedido de cartão não é compatível.";
-        }
-
-        return "Parabéns! Você obteve sucesso na contratação do cartão " + tipoCartao + ".";
+        return Messages.obterMensagemSucessoContratacao() + contratacao.getTipoCartao();
     }
 
     private boolean clientePossuiDebito(Cliente cliente) {
+        //Random random = new Random();
+        //return random.nextBoolean();
         return false;
     }
 
-    private boolean isCartaoCompativel(ClassificacaoCartao classificacaoCartao, String tipoCartao) {
-        return true;
+    private boolean isCartaoCompativel(ClassificacaoCartao cartaoLiberado, String cartaoRequisitado) {
+        return switch (cartaoRequisitado) {
+            case OURO -> cartaoLiberado == ClassificacaoCartao.OURO;
+            case PRATA -> cartaoLiberado == ClassificacaoCartao.PRATA ||
+                    cartaoLiberado == ClassificacaoCartao.OURO;
+            default -> true;
+        };
     }
 
-    private String chamarEndpoint(String url) {
+    private boolean isTipoCartaoEnviadoValido(String cartaoSolicitado) {
         try {
-            ResponseEntity<Integer> response = restTemplate.exchange(url, HttpMethod.GET, null, Integer.class);
-            if (response.getStatusCode() == HttpStatus.OK) {
-                return Objects.requireNonNull(response.getBody());
-            } else {
-                throw new IllegalStateException(Messages.obterMensagemErroEndpoint() + url);
-            }
-        } catch (RestClientException e) {
-            throw new IllegalStateException(Messages.obterMensagemErroEndpoint() + url, e);
+            ClassificacaoCartao.valueOf(cartaoSolicitado.toUpperCase());
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
         }
     }
 }

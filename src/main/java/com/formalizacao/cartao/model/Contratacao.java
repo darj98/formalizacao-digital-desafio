@@ -1,31 +1,37 @@
 package com.formalizacao.cartao.model;
 
 public class Contratacao {
-    private Long id;
-    private Cliente cliente;
-    private Produto produto;
+    private String cpf;
+    private boolean utilizarUltimaSimulacao;
+    private String tipoCartao;
 
-    public Long getId() {
-        return id;
+    public Contratacao(String cpf, boolean utilizarUltimaSimulacao, String tipoCartao) {
+        this.cpf = cpf;
+        this.utilizarUltimaSimulacao = utilizarUltimaSimulacao;
+        this.tipoCartao = tipoCartao;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public String getCpf() {
+        return cpf;
     }
 
-    public Cliente getCliente() {
-        return cliente;
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
     }
 
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
+    public boolean isUtilizarUltimaSimulacao() {
+        return utilizarUltimaSimulacao;
     }
 
-    public Produto getProduto() {
-        return produto;
+    public void setUtilizarUltimaSimulacao(boolean utilizarUltimaSimulacao) {
+        this.utilizarUltimaSimulacao = utilizarUltimaSimulacao;
     }
 
-    public void setProduto(Produto produto) {
-        this.produto = produto;
+    public String getTipoCartao() {
+        return tipoCartao;
+    }
+
+    public void setTipoCartao(String tipoCartao) {
+        this.tipoCartao = tipoCartao;
     }
 }

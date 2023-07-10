@@ -1,6 +1,7 @@
 package com.formalizacao.cartao.controller;
 
 import com.formalizacao.cartao.model.Cliente;
+import com.formalizacao.cartao.repository.ClienteRepository;
 import com.formalizacao.cartao.service.ClienteService;
 import com.formalizacao.cartao.util.Messages;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +16,11 @@ public class ClienteController {
 
     private final ClienteService clienteService;
 
-    public ClienteController(ClienteService clienteService) {
+    private final ClienteRepository clienteRepository;
+
+    public ClienteController(ClienteService clienteService, ClienteRepository clienteRepository) {
         this.clienteService = clienteService;
+        this.clienteRepository = clienteRepository;
     }
 
     @GetMapping
@@ -41,6 +45,10 @@ public class ClienteController {
         }
         if (StringUtils.isEmpty(cliente.getCpf())) {
             return ResponseEntity.badRequest().body(Messages.obterMensagemCpfCliente());
+        }
+        boolean cpfExists = clienteRepository.existsByCpf(cliente.getCpf());
+        if (cpfExists) {
+            return ResponseEntity.badRequest().body(Messages.obterMensagemClienteExistente());
         }
 
         Cliente createdCliente = clienteService.createCliente(cliente);
