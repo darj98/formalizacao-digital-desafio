@@ -21,5 +21,8 @@ API de Contratação: Gerencia o processo de contratação de cartões de crédi
 # Observações
 Algumas partes do código foram escritas e estabelecidas com randoms(para simular uma situação fictícia do cliente), portanto testes poderão falhar em alguns acasos, caso queiram 100%, necessário remover e colocar valores fixos.
 
+Segue abaixo o link da collection das requisições que fiz no postman para facilitar os testes:
+https://drive.google.com/file/d/11bq0mWaM6YXtzUoeWcUkRA9XndgeAS2I/view?usp=sharing
+
 # Conclusão
 No mais, agradeço pela oportunidade de participar do processo, qualquer dúvida só entrar em contato pelo e-mail que foi enviado para vocês. Obrigado!
