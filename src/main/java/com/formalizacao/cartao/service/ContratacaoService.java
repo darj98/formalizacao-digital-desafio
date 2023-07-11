@@ -10,6 +10,8 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Random;
+
 @Service
 public class ContratacaoService {
     private final RestTemplate restTemplate;
@@ -65,9 +67,8 @@ public class ContratacaoService {
     }
 
     private boolean clientePossuiDebito(Cliente cliente) {
-        //Random random = new Random();
-        //return random.nextBoolean();
-        return false;
+        Random random = new Random();
+        return random.nextBoolean();
     }
 
     private boolean isCartaoCompativel(ClassificacaoCartao cartaoLiberado, String cartaoRequisitado) {

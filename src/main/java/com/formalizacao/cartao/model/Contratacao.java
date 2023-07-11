@@ -5,6 +5,10 @@ public class Contratacao {
     private boolean utilizarUltimaSimulacao;
     private String tipoCartao;
 
+    public Contratacao(){
+
+    }
+
     public Contratacao(String cpf, boolean utilizarUltimaSimulacao, String tipoCartao) {
         this.cpf = cpf;
         this.utilizarUltimaSimulacao = utilizarUltimaSimulacao;

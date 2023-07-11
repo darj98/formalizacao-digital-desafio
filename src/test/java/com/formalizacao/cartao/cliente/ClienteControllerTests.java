@@ -19,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 public class ClienteControllerTests {
 
     @InjectMocks
@@ -61,6 +63,8 @@ public class ClienteControllerTests {
     public void testCreateCliente() {
         // Cenário válido
         Cliente cliente = new Cliente();
+        cliente.setNome("Teste");
+        cliente.setCpf("11929977377");
         Mockito.when(clienteService.createCliente(Mockito.any(Cliente.class))).thenReturn(cliente);
 
         ResponseEntity<?> response = clienteController.createCliente(cliente);
@@ -80,6 +84,7 @@ public class ClienteControllerTests {
 
         // Cenário de CPF vazio
         Cliente clienteCpfVazio = new Cliente();
+        clienteCpfVazio.setNome("Teste");
         Mockito.when(clienteService.createCliente(Mockito.eq(clienteCpfVazio)))
                 .thenThrow(new IllegalArgumentException(Messages.obterMensagemCpfCliente()));
 
@@ -90,13 +95,13 @@ public class ClienteControllerTests {
 
         // Cenário de CPF existente
         Cliente clienteCpfExistente = new Cliente();
+        clienteCpfExistente.setNome("Teste");
+        clienteCpfExistente.setCpf("11929977377");
         Mockito.when(clienteService.createCliente(Mockito.eq(clienteCpfExistente)))
                 .thenThrow(new IllegalArgumentException(Messages.obterMensagemClienteExistente()));
 
-        ResponseEntity<?> responseCpfExistente = clienteController.createCliente(clienteCpfExistente);
-
-        Assert.assertEquals(HttpStatus.BAD_REQUEST, responseCpfExistente.getStatusCode());
-        Assert.assertEquals(Messages.obterMensagemClienteExistente(), responseCpfExistente.getBody());
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> clienteController.createCliente(clienteCpfExistente));
+        Assert.assertEquals(Messages.obterMensagemClienteExistente(), exception.getMessage());
     }
 
     @Test

@@ -32,7 +32,7 @@ public class SimulacaoService {
     private static final String ENDPOINT_TRAZER_ULTIMA_SIMULACAO_FIM = "/ultimaSimulacao";
 
     public SimulacaoService(RestTemplateBuilder restTemplateBuilder, ClienteRepository clienteRepository) {
-        this.restTemplate = restTemplateBuilder.build();
+        this.restTemplate = new RestTemplate();
         this.clienteRepository = clienteRepository;
     }
 
@@ -55,7 +55,7 @@ public class SimulacaoService {
         return String.format(Messages.obterMensagemSimulacao(cpf,classificacao));
     }
 
-    private ClassificacaoCartao classificarCartao(int pontuacao) {
+    public ClassificacaoCartao classificarCartao(int pontuacao) {
         if (pontuacao >= LIMITE_PONTUACAO_OURO) {
             return ClassificacaoCartao.OURO;
         } else if (pontuacao >= LIMITE_PONTUACAO_PRATA) {
